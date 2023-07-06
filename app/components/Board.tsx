@@ -19,7 +19,7 @@ const lines = [
   "top-[19%] -translate-y-1/2 left-[10%] w-4/5",
   "top-1/2 -translate-y-1/2 left-[10%] w-4/5",
   "bottom-[14%] -translate-y-1/2 left-[10%] w-4/5",
-  "top-[48%] -translate-x-1/2 left-[19%] w-4/5 rotate-90",
+  "top-[48%] -translate-x-1/2 left-[18%] sm:left-[19%] w-4/5 rotate-90",
   "top-[48%] -translate-x-1/2 left-[50%] w-4/5 rotate-90",
   "top-[48%] -translate-x-1/2 left-[80%] w-4/5 rotate-90",
   "top-[49%] left-[-5%]  w-[110%] rotate-45",
@@ -39,9 +39,9 @@ const Board: React.FC = () => {
   const [botActive, setBotActive] = useState(false);
   const [helper, setHelper] = useState(0);
 
-  const checkWin = (hand: "✖" | "◯") => {
+  const checkWin = (hand: "✖" | "◯", board = checked) => {
     return cond.some((c, i) => {
-      if (c.every((i) => checked[i] === hand)) {
+      if (c.every((i) => board[i] === hand)) {
         setEndLine(i);
         setFinished(true);
         return true;
@@ -72,6 +72,34 @@ const Board: React.FC = () => {
     setDraw(false);
   };
 
+  const pickMove = (i: number) => {
+    const botS = currHand ? "◯" : "✖";
+    const plS = !currHand ? "◯" : "✖";
+    let ind: number;
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (checked[cond[i][j]] === null) {
+          let temp = checked.slice();
+
+          // temp[cond[i][j]] = plS;
+          // if (checkWin(plS, temp)) return cond[i][j];
+
+          temp[cond[i][j]] = botS;
+          if (checkWin(botS, temp)) return cond[i][j];
+        }
+      }
+    }
+
+    ind = Math.floor(Math.random() * 9);
+    while (
+      checked.some((e) => e === null) &&
+      (ind === i || checked[ind] !== null)
+    ) {
+      ind = Math.floor(Math.random() * 9);
+    }
+    return ind;
+  };
+
   return (
     <div>
       <h3 className="font-bold mb-2 text-center">{endText}</h3>
@@ -82,17 +110,13 @@ const Board: React.FC = () => {
               onClick={() => {
                 if (!checked[i] && !finished) {
                   setChecked((l) => {
-                    l[i] = currHand ? "✖" : "◯";
-                    if (botActive && !checkWin("✖")) {
+                    const botS = currHand ? "◯" : "✖";
+                    const plS = !currHand ? "◯" : "✖";
+                    l[i] = plS;
+                    if (botActive && !checkWin(plS)) {
                       //setTimeout(() => {}, 1000);
-                      let ind = Math.floor(Math.random() * 9);
-                      while (
-                        checked.some((e) => e === null) &&
-                        (ind === i || checked[ind] !== null)
-                      ) {
-                        ind = Math.floor(Math.random() * 9);
-                      }
-                      l[ind] = !currHand ? "✖" : "◯";
+                      let ind = pickMove(i);
+                      l[ind] = botS;
                     }
                     setCurrHand(botActive ? currHand : !currHand);
                     setHelper((h) => h + 1);
