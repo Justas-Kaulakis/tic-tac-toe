@@ -36,6 +36,8 @@ const Board: React.FC = () => {
   const [endText, setEndText] = useState("GOOD LUCK!");
   const [draw, setDraw] = useState(false);
   const [score, setScore] = useState<{ "✖": number; "◯": number }>(clearScore);
+  const [botActive, setBotActive] = useState(false);
+  const [helper, setHelper] = useState(0);
 
   const checkWin = (hand: "✖" | "◯") => {
     return cond.some((c, i) => {
@@ -49,7 +51,6 @@ const Board: React.FC = () => {
   };
 
   useEffect(() => {
-    //console.log("RUNNING: ", checked);
     if (checkWin("✖")) {
       setScore({ ...score, "✖": score["✖"] + 1 });
       setEndText("The ✖ HAS WON!");
@@ -61,8 +62,16 @@ const Board: React.FC = () => {
       setDraw(true);
       setEndText("IT'S A DRAW!");
     }
-  }, [JSON.stringify(checked)]);
+  }, [/*JSON.stringify(checked)*/ currHand, helper]);
   const cantReset = finished || (score["✖"] === 0 && score["◯"] === 0);
+
+  const resetGame = () => {
+    setFinished(false);
+    setEndText("GOOD LUCK!");
+    setChecked(clear);
+    setDraw(false);
+  };
+
   return (
     <div>
       <h3 className="font-bold mb-2 text-center">{endText}</h3>
@@ -74,7 +83,19 @@ const Board: React.FC = () => {
                 if (!checked[i] && !finished) {
                   setChecked((l) => {
                     l[i] = currHand ? "✖" : "◯";
-                    setCurrHand(!currHand);
+                    if (botActive && !checkWin("✖")) {
+                      //setTimeout(() => {}, 1000);
+                      let ind = Math.floor(Math.random() * 9);
+                      while (
+                        checked.some((e) => e === null) &&
+                        (ind === i || checked[ind] !== null)
+                      ) {
+                        ind = Math.floor(Math.random() * 9);
+                      }
+                      l[ind] = !currHand ? "✖" : "◯";
+                    }
+                    setCurrHand(botActive ? currHand : !currHand);
+                    setHelper((h) => h + 1);
                     return l;
                   });
                 }
@@ -104,12 +125,7 @@ const Board: React.FC = () => {
           className={`${!finished ? "hidden" : ""} 
           bg-purple-500 p-3 rounded-md text-white  
           absolute self-center hover:cursor-pointer -translate-x-1/2 left-1/2`}
-          onClick={() => {
-            setFinished(false);
-            setEndText("GOOD LUCK!");
-            setChecked(clear);
-            setDraw(false);
-          }}
+          onClick={resetGame}
         >
           PLAY&nbsp;AGAIN
         </div>
@@ -123,8 +139,8 @@ const Board: React.FC = () => {
           <button
             disabled={cantReset}
             className="btn mt-3 self-center w-[8em] 
-        text-purple-700   border border-purple-500 
-        p-1 rounded-md hover:text-purple-500 hover:bg-violet-500/10 active:bg-transparent"
+        text-purple-500   border border-purple-500 
+        p-1 rounded-md hover:text-purple-400 hover:bg-violet-500/10 active:bg-transparent"
             onClick={() => {
               setScore(clearScore);
             }}
@@ -132,6 +148,24 @@ const Board: React.FC = () => {
             reset score
           </button>
         )}
+        <button
+          className="btn mt-3 self-center w-[8em] 
+        text-purple-500   border border-purple-500 
+        p-1 rounded-md hover:text-purple-400 hover:bg-violet-500/10 active:bg-transparent"
+          onClick={() => {
+            resetGame();
+            setScore(clearScore);
+            if (!botActive) {
+              setBotActive(true);
+              setCurrHand(true);
+            } else {
+              setBotActive(false);
+              setCurrHand(true);
+            }
+          }}
+        >
+          {botActive ? "play with a friend" : "chalenge a 🤖!"}
+        </button>
       </div>
     </div>
   );
