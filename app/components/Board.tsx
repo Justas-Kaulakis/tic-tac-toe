@@ -66,8 +66,8 @@ const Board: React.FC = () => {
   return (
     <div>
       <h3 className="font-bold mb-2 text-center">{endText}</h3>
-      <div className="flex flex-row m-auto relative max-w-xl aspect-square w-[60vw] ">
-        <div className="w-full h-full rounded-2xl p-5 bg-purple-300 grid grid-cols-3 grid-rows-3 gap-2">
+      <div className="flex flex-row m-auto relative max-w-xl aspect-square w-[min(80vw,_80vh)] md:w-[60vw] ">
+        <div className="w-full h-full rounded-2xl p-2 sm:p-5 bg-purple-300 grid grid-cols-3 grid-rows-3 gap-2">
           {checked.map((b, i) => (
             <div
               onClick={() => {
@@ -111,7 +111,7 @@ const Board: React.FC = () => {
             setDraw(false);
           }}
         >
-          PLAY AGAIN
+          PLAY&nbsp;AGAIN
         </div>
       </div>
       <div className="flex flex-col mt-3  bottom-[-4em]">
