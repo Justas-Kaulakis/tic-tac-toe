@@ -39,9 +39,10 @@ const Board: React.FC = () => {
   const [botActive, setBotActive] = useState(false);
   const [helper, setHelper] = useState(0);
 
-  const checkWin = (hand: "✖" | "◯", board = checked) => {
+  const checkWin = (hand: "✖" | "◯", board = checked, test = false) => {
     return cond.some((c, i) => {
       if (c.every((i) => board[i] === hand)) {
+        if (test) return true;
         setEndLine(i);
         setFinished(true);
         return true;
@@ -72,20 +73,20 @@ const Board: React.FC = () => {
     setDraw(false);
   };
 
-  const pickMove = (i: number) => {
+  const pickMove = (playerInd: number) => {
     const botS = currHand ? "◯" : "✖";
     const plS = !currHand ? "◯" : "✖";
     let ind: number;
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 3; j++) {
-        if (checked[cond[i][j]] === null) {
+        if (cond[i][j] !== playerInd && checked[cond[i][j]] === null) {
           let temp = checked.slice();
 
-          // temp[cond[i][j]] = plS;
-          // if (checkWin(plS, temp)) return cond[i][j];
+          temp[cond[i][j]] = plS;
+          if (checkWin(plS, temp, true)) return cond[i][j];
 
           temp[cond[i][j]] = botS;
-          if (checkWin(botS, temp)) return cond[i][j];
+          if (checkWin(botS, temp, true)) return cond[i][j];
         }
       }
     }
@@ -93,7 +94,7 @@ const Board: React.FC = () => {
     ind = Math.floor(Math.random() * 9);
     while (
       checked.some((e) => e === null) &&
-      (ind === i || checked[ind] !== null)
+      (ind === playerInd || checked[ind] !== null)
     ) {
       ind = Math.floor(Math.random() * 9);
     }
@@ -102,6 +103,7 @@ const Board: React.FC = () => {
 
   return (
     <div>
+      {botActive && <h2 className="my-3 text-6xl text-center">🤖🤖</h2>}
       <h3 className="font-bold mb-2 text-center">{endText}</h3>
       <div className="flex flex-row m-auto relative max-w-xl aspect-square w-[min(80vw,_80vh)] md:w-[60vw] ">
         <div className="w-full h-full rounded-2xl p-2 sm:p-5 bg-purple-300 grid grid-cols-3 grid-rows-3 gap-2">
@@ -115,8 +117,10 @@ const Board: React.FC = () => {
                     l[i] = plS;
                     if (botActive && !checkWin(plS)) {
                       //setTimeout(() => {}, 1000);
-                      let ind = pickMove(i);
-                      l[ind] = botS;
+                      if (l.some((b) => b === null)) {
+                        let ind = pickMove(i);
+                        l[ind] = botS;
+                      }
                     }
                     setCurrHand(botActive ? currHand : !currHand);
                     setHelper((h) => h + 1);
